@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jira & Party's Journey</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Config Tailwind ให้รู้จักฟอนต์และสีของเรา
+        // (ส่วนนี้แนะนำให้แปะไว้ใน HTML เพื่อให้ Tailwind render ได้ทันทีตอนโหลด)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Mali', 'cursive'] },
+                    colors: {
+                        'love-pink': '#FFB7B2',
+                        'love-bg': '#FFF0F5',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="text-gray-700">
+
+    <section class="h-screen flex flex-col justify-center items-center text-center p-4 relative overflow-hidden">
+        <div class="absolute inset-0 z-0 opacity-20">
+            <img src="https://www.transparenttextures.com/patterns/heart-necklace.png" alt="bg">
+        </div>
+        
+        <div class="z-10" id="hero-content">
+            <h1 class="text-4xl md:text-6xl font-bold text-pink-500 mb-4 drop-shadow-sm">
+                Jira <span class="text-red-400">❤</span> Party
+            </h1>
+            <p class="text-xl text-gray-500">Our Story, Our Journey</p>
+            <div class="mt-8 animate-bounce">
+                👇 เลื่อนลงเพื่อย้อนเวลา
+            </div>
+        </div>
+    </section>
+
+    <section class="min-h-screen py-10 px-4 max-w-2xl mx-auto relative">
+        <div class="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-pink-200 z-0"></div>
+        <div id="timeline-container" class="space-y-24 relative z-10">
+            <div class="text-center mt-10">กำลังโหลดความทรงจำ... 🚀</div>
+        </div>
+    </section>
+
+    <footer class="h-40 flex justify-center items-center bg-white mt-20 rounded-t-3xl shadow-inner">
+        <p class="text-lg">To be continued... 💖</p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script src="script.js"></script>
+
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col items-center gap-2">
+    <div id="love-counter" class="bg-white px-3 py-1 rounded-full text-xs font-bold text-pink-500 shadow-md opacity-0 transition-opacity">
+        0 Loves
+    </div>
+    
+    <button id="love-btn" class="bg-gradient-to-r from-pink-500 to-red-400 p-4 rounded-full shadow-lg hover:shadow-2xl hover:scale-110 active:scale-90 transition-all duration-200 group">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white animate-pulse group-hover:animate-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+    </button>
+</div>
+<div class="fixed bottom-6 left-6 z-50 group">
+    <div id="vinyl-disc" class="w-16 h-16 bg-black rounded-full border-4 border-gray-800 shadow-xl cursor-pointer flex items-center justify-center relative overflow-hidden transition-all duration-500">
+        <div class="absolute inset-0 border-2 border-gray-700 rounded-full opacity-50 scale-75"></div>
+        <div class="absolute inset-0 border-2 border-gray-700 rounded-full opacity-50 scale-50"></div>
+        
+        <div class="w-6 h-6 bg-red-500 rounded-full z-10 overflow-hidden relative">
+             <img src="https://media.giphy.com/media/LpDmM2wSt6Hm5fKJVa/giphy.gif" class="w-full h-full object-cover opacity-80"> 
+        </div>
+
+        <div id="tonearm" class="absolute -top-2 -right-2 w-8 h-12 border-r-2 border-gray-400 rounded-tr-lg origin-top-right transform -rotate-45 transition-transform duration-500"></div>
+    </div>
+
+    <audio id="bg-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+</div>
+<div id="secret-modal" class="fixed inset-0 bg-black bg-opacity-80 z-[100] hidden flex justify-center items-center backdrop-blur-sm">
+    <div class="bg-gray-900 text-green-400 p-8 rounded-lg font-mono border-2 border-green-500 w-11/12 max-w-lg shadow-[0_0_20px_rgba(0,255,0,0.5)]">
+        <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+            <h2 class="text-xl font-bold">Terminal: ~/heart/logs</h2>
+            <button onclick="document.getElementById('secret-modal').classList.add('hidden')" class="text-red-500 hover:text-red-400 font-bold">[X]</button>
+        </div>
+        
+        <div class="space-y-2 text-sm typewriter">
+            <p>> Accessing secure database...</p>
+            <p>> Status: <span class="text-pink-500">In Love</span></p>
+            <p>> Uptime: <span id="uptime-counter">Calculating...</span></p>
+            <br>
+            <p class="text-white font-bold">--- RELEASE NOTES v20.26 ---</p>
+            <ul class="list-disc pl-5 text-gray-300">
+                <li>Fixed bug: "Thinking about you too much" (Status: Won't Fix)</li>
+                <li>Optimized: Hugs & Kisses performance increased by 300%</li>
+                <li>New Feature: Love you forever unlocked.</li>
+            </ul>
+            <br>
+            <p class="animate-pulse">> _Waiting for user command...</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

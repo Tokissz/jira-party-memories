@@ -1,0 +1,76 @@
+/* ตั้งค่าพื้นฐาน */
+body {
+    background-color: #FFF0F5; /* สี love-bg */
+    overflow-x: hidden;
+}
+
+/* Class สำหรับ Card ก่อน Animate */
+.memory-card {
+    opacity: 0;
+    transform: translateY(50px);
+    /* เพิ่ม transition นิดหน่อยเผื่ออนาคตอยากทำ hover effect */
+    transition: all 0.3s ease;
+}
+
+/* Scrollbar สวยๆ (แถมให้ครับ) */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #FFF0F5;
+}
+::-webkit-scrollbar-thumb {
+    background: #FFB7B2;
+    border-radius: 10px;
+}
+/* หัวใจที่จะลอยขึ้นมา */
+.floating-heart {
+    position: fixed;
+    pointer-events: none; /* เพื่อให้กดทะลุได้ ไม่บังปุ่ม */
+    z-index: 40;
+    font-size: 24px;
+    animation: floatUp 2s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(0) scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-200px) scale(1.5) rotate(45deg); /* ลอยขึ้น + ขยาย + หมุน */
+        opacity: 0;
+    }
+}
+/* Animation หมุนแผ่นเสียง */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* คลาสที่จะ add ด้วย JS ตอนกดเล่น */
+.playing-vinyl {
+    animation: spin 3s linear infinite; /* หมุนตลอดเวลา */
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.6); /* เรืองแสงสีชมพู */
+}
+
+.paused-vinyl {
+    animation: none;
+    transform: rotate(0deg);
+}
+
+/* ตัวโน้ตดนตรีลอยๆ */
+.music-note {
+    position: fixed;
+    color: #FF69B4;
+    font-size: 20px;
+    pointer-events: none;
+    animation: floatNote 2s ease-out forwards;
+    z-index: 40;
+}
+
+@keyframes floatNote {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translate(20px, -100px) rotate(20deg); opacity: 0; }
+}
