@@ -1,19 +1,72 @@
 // --- CONFIGURATION ---
-// ⚠️ อย่าลืมเอา Link CSV ของจริงมาใส่นะครับ!
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQoSVkChFzMNXmhOCFH123g0NN9w8GVXRuS2tz0Vd2uUbiN6X76Ux5_G4y7juCwqh2WmLlHc8loAVNH/pub?output=csv'; 
+const YOUTUBE_VIDEO_ID = 'GhQxrCrVSyw'; // Until I Found You
 
-// --- MAIN LOGIC ---
+// --- GLOBAL VARIABLES ---
+var player;
+var isPlayerReady = false;
+var isPlaying = false;
+
+// --- YOUTUBE API SETUP (ต้องอยู่ Global ห้ามย้ายเข้าข้างใน function) ---
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+function onYouTubeIframeAPIReady() {
+    player = new YT.Player('youtube-player', {
+        height: '0',
+        width: '0',
+        videoId: YOUTUBE_VIDEO_ID,
+        playerVars: {
+            'autoplay': 0,
+            'controls': 0,
+            'loop': 1,
+            'playlist': YOUTUBE_VIDEO_ID
+        },
+        events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+        }
+    });
+}
+
+function onPlayerReady(event) {
+    isPlayerReady = true;
+    console.log("Music Player Ready! 🎵");
+}
+
+function onPlayerStateChange(event) {
+    if (event.data === YT.PlayerState.ENDED) {
+        player.playVideo(); 
+    }
+}
+
+// --- MAIN LOGIC (ทำงานเมื่อเว็บโหลดเสร็จ) ---
 document.addEventListener('DOMContentLoaded', () => {
+    
+    // 1. Init Libraries
     gsap.registerPlugin(ScrollTrigger);
+    
+    // 2. Load Data
     loadMemories();
+
+    // 3. Setup Love Button
+    setupLoveButton();
+
+    // 4. Setup Vinyl Player
+    setupVinylPlayer();
+
+    // 5. Setup Secret Mode
+    setupSecretMode();
 });
 
+// --- FUNCTION: LOAD MEMORIES ---
 function loadMemories() {
     Papa.parse(SHEET_CSV_URL, {
         download: true,
         header: true,
         complete: function(results) {
-            // กรองเอาเฉพาะแถวที่มีวันที่ (ป้องกันแถวว่างใน Sheet)
             const validData = results.data.filter(item => item.Date);
             renderTimeline(validData);
         },
@@ -26,18 +79,13 @@ function loadMemories() {
 
 function renderTimeline(data) {
     const container = document.getElementById('timeline-container');
-    container.innerHTML = ''; // Clear loading text
+    container.innerHTML = ''; 
 
     data.forEach((item, index) => {
-        // สลับซ้าย-ขวา
         const isLeft = index % 2 === 0;
-        
-        // Template Card
         const html = `
             <div class="memory-card relative flex items-center w-full ${isLeft ? 'flex-row-reverse' : ''}">
-                
                 <div class="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-pink-500 rounded-full border-4 border-white shadow-lg z-20"></div>
-
                 <div class="w-1/2 ${isLeft ? 'pr-8 text-right' : 'pl-8 text-left'}">
                     <span class="inline-block px-3 py-1 bg-pink-100 text-pink-600 rounded-full text-sm font-bold mb-2 shadow-sm">
                         ${item.Date}
@@ -48,177 +96,164 @@ function renderTimeline(data) {
                         <p class="text-gray-600 text-sm mt-2">${item.Caption}</p>
                     </div>
                 </div>
-                
                 <div class="w-1/2"></div>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', html);
     });
-
-    // เริ่ม Animation หลังจาก Render เสร็จ
     animateTimeline();
 }
 
 function animateTimeline() {
-    // 1. Animate Cards
     const cards = document.querySelectorAll('.memory-card');
     cards.forEach((card) => {
         gsap.to(card, {
             scrollTrigger: {
                 trigger: card,
-                start: "top 85%", // เริ่มเล่นเมื่อ Card โผล่มา
-                toggleActions: "play none none reverse", // เลื่อนกลับแล้วเล่นใหม่
+                start: "top 85%",
+                toggleActions: "play none none reverse",
             },
             opacity: 1,
             y: 0,
             duration: 0.8,
-            ease: "back.out(1.7)" // เด้งดึ๋งนิดนึง ให้น่ารัก
+            ease: "back.out(1.7)"
         });
     });
 
-    // 2. Animate Hero Section
     gsap.from("#hero-content", {
         duration: 1.5, 
         y: -50, 
         opacity: 0, 
         ease: "elastic.out(1, 0.3)"
     });
-    
-    // --- LOVE BUTTON LOGIC ---
-const loveBtn = document.getElementById('love-btn');
-const loveCounter = document.getElementById('love-counter');
-let clickCount = 0;
-
-// โหลดจำนวนกดจากเครื่องตัวเอง (เก็บไว้ดูเล่นๆ)
-if(localStorage.getItem('loveClicks')) {
-    clickCount = parseInt(localStorage.getItem('loveClicks'));
-    updateCounterDisplay();
 }
 
-loveBtn.addEventListener('click', (e) => {
-    // 1. เพิ่มตัวเลข
-    clickCount++;
-    localStorage.setItem('loveClicks', clickCount);
-    updateCounterDisplay();
-    
-    // โชว์ตัวเลขแป๊บนึงแล้วซ่อน
-    loveCounter.classList.remove('opacity-0');
-    setTimeout(() => loveCounter.classList.add('opacity-0'), 2000);
+// --- FUNCTION: LOVE BUTTON ---
+function setupLoveButton() {
+    const loveBtn = document.getElementById('love-btn');
+    const loveCounter = document.getElementById('love-counter');
+    let clickCount = 0;
 
-    // 2. เสกหัวใจ (Create Particle)
-    createHeartParticle(e.clientX, e.clientY);
-    
-    // สั่นปุ่มนิดหน่อยเพิ่มฟีลลิ่ง
-    gsap.fromTo(loveBtn, {scale: 0.8}, {scale: 1, duration: 0.1, ease: "back.out(4)"});
-});
+    if(localStorage.getItem('loveClicks')) {
+        clickCount = parseInt(localStorage.getItem('loveClicks'));
+        loveCounter.innerText = `${clickCount.toLocaleString()} Loves`;
+    }
 
-function updateCounterDisplay() {
-    loveCounter.innerText = `${clickCount.toLocaleString()} Loves`;
+    loveBtn.addEventListener('click', (e) => {
+        clickCount++;
+        localStorage.setItem('loveClicks', clickCount);
+        loveCounter.innerText = `${clickCount.toLocaleString()} Loves`;
+        
+        loveCounter.classList.remove('opacity-0');
+        setTimeout(() => loveCounter.classList.add('opacity-0'), 2000);
+
+        createHeartParticle(e.clientX, e.clientY);
+        gsap.fromTo(loveBtn, {scale: 0.8}, {scale: 1, duration: 0.1, ease: "back.out(4)"});
+    });
 }
 
 function createHeartParticle(x, y) {
     const heart = document.createElement('div');
-    const hearts = ['❤️', '💖', '💕', '🥰', '😍']; // สุ่มอีโมจิ
+    const hearts = ['❤️', '💖', '💕', '🥰', '😍'];
     heart.innerText = hearts[Math.floor(Math.random() * hearts.length)];
     heart.classList.add('floating-heart');
     
-    // สุ่มตำแหน่งนิดหน่อย ไม่ให้มันซ้อนกันเป๊ะ
     const randomX = (Math.random() - 0.5) * 50; 
-    
     heart.style.left = `${x + randomX}px`;
     heart.style.top = `${y}px`;
     
     document.body.appendChild(heart);
-
-    // ลบ Element ทิ้งเมื่อเล่นเสร็จ (ป้องกันเมมเต็ม)
-    setTimeout(() => {
-        heart.remove();
-    }, 2000);
+    setTimeout(() => heart.remove(), 2000);
 }
 
-// --- VINYL PLAYER LOGIC ---
-const vinylDisc = document.getElementById('vinyl-disc');
-const bgMusic = document.getElementById('bg-music');
-const tonearm = document.getElementById('tonearm');
-let isPlaying = false;
+// --- FUNCTION: VINYL PLAYER ---
+function setupVinylPlayer() {
+    const vinylDisc = document.getElementById('vinyl-disc');
+    const tonearm = document.getElementById('tonearm');
 
-vinylDisc.addEventListener('click', () => {
-    if (isPlaying) {
-        bgMusic.pause();
-        vinylDisc.classList.remove('playing-vinyl');
-        tonearm.style.transform = 'rotate(-45deg)'; // ยกเข็มออก
-    } else {
-        bgMusic.play().catch(e => alert("กรุณากดที่หน้าจอก่อน 1 ครั้งเพื่อให้เพลงเล่นได้ครับ (Browser Policy)"));
-        vinylDisc.classList.add('playing-vinyl');
-        tonearm.style.transform = 'rotate(0deg)'; // วางเข็มลง
-        
-        // ปล่อยตัวโน้ตออกมาเรื่อยๆ
-        startMusicNotes();
-    }
-    isPlaying = !isPlaying;
-});
+    vinylDisc.addEventListener('click', () => {
+        if (!isPlayerReady) {
+            alert("รอแป๊บนึงนะ กำลังโหลดแผ่นเสียง... ⏳");
+            return;
+        }
 
-function startMusicNotes() {
-    if(!isPlaying) return;
+        if (isPlaying) {
+            player.pauseVideo();
+            vinylDisc.classList.remove('playing-vinyl');
+            tonearm.style.transform = 'rotate(-45deg)'; 
+        } else {
+            player.playVideo();
+            vinylDisc.classList.add('playing-vinyl');
+            tonearm.style.transform = 'rotate(0deg)'; 
+            startMusicNotes(vinylDisc);
+        }
+        isPlaying = !isPlaying;
+    });
+}
+
+function startMusicNotes(vinylDisc) {
+    // เช็คว่ามี Loop เก่าทำงานอยู่ไหมเพื่อไม่ให้ซ้อนกัน
+    if (window.noteInterval) clearInterval(window.noteInterval);
     
-    // สร้างตัวโน้ตทุกๆ 0.5 วินาที
-    setInterval(() => {
-        if(isPlaying) createNote();
+    window.noteInterval = setInterval(() => {
+        if(isPlaying) {
+            const note = document.createElement('div');
+            note.innerHTML = '🎵';
+            note.classList.add('music-note');
+            
+            const rect = vinylDisc.getBoundingClientRect();
+            note.style.left = `${rect.left + 20}px`;
+            note.style.top = `${rect.top}px`;
+            
+            document.body.appendChild(note);
+            setTimeout(() => note.remove(), 2000);
+        }
     }, 800);
 }
 
-function createNote() {
-    const note = document.createElement('div');
-    note.innerHTML = '🎵';
-    note.classList.add('music-note');
-    
-    // ตำแหน่งเริ่มต้นที่แผ่นเสียง
-    const rect = vinylDisc.getBoundingClientRect();
-    note.style.left = `${rect.left + 20}px`;
-    note.style.top = `${rect.top}px`;
-    
-    document.body.appendChild(note);
-    setTimeout(() => note.remove(), 2000);
-}
-// --- SECRET CODE LOGIC ---
-const title = document.querySelector('h1'); // เลือก H1 ที่เป็นชื่อหัวเว็บ
-const secretModal = document.getElementById('secret-modal');
-let tapCount = 0;
-let tapTimer;
+// --- FUNCTION: SECRET MODE ---
+function setupSecretMode() {
+    const title = document.querySelector('h1');
+    const secretModal = document.getElementById('secret-modal');
+    if (!title || !secretModal) return;
 
-title.addEventListener('click', (e) => {
-    // เอฟเฟกต์กดแล้วเด้งดึ๋ง
-    gsap.fromTo(title, {scale: 0.9}, {scale: 1, duration: 0.2, ease: "elastic.out"});
-    
-    tapCount++;
-    
-    // รีเซ็ตถ้าไม่ได้กดต่อภายใน 0.5 วิ
-    clearTimeout(tapTimer);
-    tapTimer = setTimeout(() => { tapCount = 0; }, 500);
+    let tapCount = 0;
+    let tapTimer;
 
-    // ถ้ากดครบ 5 ครั้ง
-    if (tapCount === 5) {
-        tapCount = 0;
-        openSecretMode();
+    title.addEventListener('click', () => {
+        gsap.fromTo(title, {scale: 0.9}, {scale: 1, duration: 0.2, ease: "elastic.out"});
+        tapCount++;
+        clearTimeout(tapTimer);
+        tapTimer = setTimeout(() => { tapCount = 0; }, 500);
+
+        if (tapCount === 5) {
+            tapCount = 0;
+            openSecretMode(secretModal);
+        }
+    });
+    
+    // ปุ่มปิด Modal
+    const closeBtn = secretModal.querySelector('button');
+    if(closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            secretModal.classList.add('hidden');
+        });
     }
-});
+}
 
-function openSecretMode() {
-    secretModal.classList.remove('hidden');
+function openSecretMode(modal) {
+    modal.classList.remove('hidden');
     
-    // คำนวณวันคบกันเล่นๆ (สมมติเริ่ม 2025-10-19)
     const startDate = new Date('2025-10-19');
     const now = new Date();
     const diffTime = Math.abs(now - startDate);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
     
-    document.getElementById('uptime-counter').innerText = `${diffDays} Days running without crashing`;
+    const counter = document.getElementById('uptime-counter');
+    if(counter) counter.innerText = `${diffDays} Days running without crashing`;
     
-    // Animation เปิด Terminal
-    gsap.fromTo("#secret-modal > div", 
+    gsap.fromTo(modal.firstElementChild, 
         {y: -100, opacity: 0}, 
         {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}
     );
 }
-}
-
