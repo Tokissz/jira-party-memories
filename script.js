@@ -256,4 +256,5 @@ function openSecretMode(modal) {
         {y: -100, opacity: 0}, 
         {y: 0, opacity: 1, duration: 0.5, ease: "power2.out"}
     );
+
 }
