@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- FUNCTION: LOAD MEMORIES ---
 function loadMemories() {
-    Papa.parse(SHEET_CSV_URL, {
+    Papa.parse(SHEET_CSV_URL + '&t=' + Date.now(), {
         download: true,
         header: true,
         complete: function(results) {
@@ -258,3 +258,4 @@ function openSecretMode(modal) {
     );
 
 }
+
